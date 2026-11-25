@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Repro for upstream PR #262 (https://github.com/lucacivale/Maui.BottomSheet/pull/262).
+    BottomSheetContentView.OnBindingContextChanged assigns the sheet BindingContext to every
+    visual descendant, overwriting child views that have their own BindingContext
+    (bound, explicit, or list rows whose BindingContext is their item).
+
+    Steps:
+    1. "Reference" section: all probes are green (plain MAUI behavior).
+    2. "Open sheet (Content)": the content already exists when the sheet opens, so the loop
+       overwrites blocks 2, 3 and 4: red probes, empty labels, list rows lose their item.
+    3. "Open sheet (ContentTemplate)": the content is created after the context is set,
+       so it is fine on open. Tap "Swap parent view model" inside the sheet: the loop runs
+       on the displayed content and blocks 2, 3 and 4 turn red.
+-->
+<ContentPage
+    Title="BottomSheet BindingContext repro"
+    x:Class="Plugin.Maui.BottomSheet.Sample.Views.BindingContextReproPage"
+    x:DataType="vm:BindingContextReproViewModel"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    xmlns:views="clr-namespace:Plugin.Maui.BottomSheet.Sample.Views"
+    xmlns:vm="clr-namespace:Plugin.Maui.BottomSheet.Sample.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+                <Label
+                    FontSize="14"
+                    LineBreakMode="WordWrap"
+                    Text="The same content is shown below directly in the page (reference) and inside a BottomSheet. Child views with their own BindingContext must keep it in both cases." />
+                <Button
+                    AutomationId="BindingContextReproOpenContentButton"
+                    Clicked="OnOpenContentClicked"
+                    Text="Open sheet (Content)" />
+                <Button
+                    AutomationId="BindingContextReproOpenTemplateButton"
+                    Clicked="OnOpenTemplateClicked"
+                    Text="Open sheet (ContentTemplate)" />
+                <Button
+                    AutomationId="BindingContextReproSwapButton"
+                    Clicked="OnSwapClicked"
+                    Text="Swap parent view model" />
+                <Label FontAttributes="Bold" FontSize="18" Text="Reference (plain MAUI)" />
+                <views:BindingContextReproContent />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Content set directly: the view exists before the sheet opens (case seen in the app). -->
+        <bottomsheet:BottomSheet
+            Padding="16"
+            ShowHeader="True"
+            States="Medium,Large"
+            x:Name="ContentSheet">
+            <bottomsheet:BottomSheet.Header>
+                <bottomsheet:BottomSheetHeader TitleText="BottomSheetContent.Content" />
+            </bottomsheet:BottomSheet.Header>
+            <bottomsheet:BottomSheet.Content>
+                <bottomsheet:BottomSheetContent>
+                    <ScrollView>
+                        <VerticalStackLayout Spacing="12">
+                            <Button Clicked="OnSwapClicked" Text="Swap parent view model" />
+                            <views:BindingContextReproContent />
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </bottomsheet:BottomSheetContent>
+            </bottomsheet:BottomSheet.Content>
+        </bottomsheet:BottomSheet>
+
+        <!-- ContentTemplate: the view is created when the sheet opens. -->
+        <bottomsheet:BottomSheet
+            Padding="16"
+            ShowHeader="True"
+            States="Medium,Large"
+            x:Name="TemplateSheet">
+            <bottomsheet:BottomSheet.Header>
+                <bottomsheet:BottomSheetHeader TitleText="BottomSheetContent.ContentTemplate" />
+            </bottomsheet:BottomSheet.Header>
+            <bottomsheet:BottomSheet.Content>
+                <bottomsheet:BottomSheetContent>
+                    <bottomsheet:BottomSheetContent.ContentTemplate>
+                        <DataTemplate>
+                            <ScrollView>
+                                <VerticalStackLayout Spacing="12">
+                                    <Button Clicked="OnSwapClicked" Text="Swap parent view model" />
+                                    <views:BindingContextReproContent />
+                                </VerticalStackLayout>
+                            </ScrollView>
+                        </DataTemplate>
+                    </bottomsheet:BottomSheetContent.ContentTemplate>
+                </bottomsheet:BottomSheetContent>
+            </bottomsheet:BottomSheet.Content>
+        </bottomsheet:BottomSheet>
+    </Grid>
+</ContentPage>

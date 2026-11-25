@@ -18,4 +18,9 @@ public partial class MainPage : ContentPage
     {
         await Shell.Current.GoToAsync(nameof(ShellPage));
     }
+
+    private async void OpenBindingContextReproPage(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(BindingContextReproPage));
+    }
 }

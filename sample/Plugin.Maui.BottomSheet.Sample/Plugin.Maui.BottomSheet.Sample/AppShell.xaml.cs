@@ -10,5 +10,6 @@ public partial class AppShell : Shell
 
         Routing.RegisterRoute(nameof(ShowCasePage), typeof(ShowCasePage));
         Routing.RegisterRoute(nameof(ShellPage), typeof(ShellPage));
+        Routing.RegisterRoute(nameof(BindingContextReproPage), typeof(BindingContextReproPage));
     }
 }
